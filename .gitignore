@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Kundemateriale og resultater bliver i sagsmappen, ikke i git
+projekter/*/
+!projekter/eksempel/
+
+# Rhino/Grasshopper-backups
+*.3dmbak
+*.ghbak
+*.rhl
