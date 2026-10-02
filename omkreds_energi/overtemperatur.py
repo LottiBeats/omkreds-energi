@@ -1,8 +1,15 @@
 """Termisk indeklima efter BR18 § 386: timer over 27 og 28 °C pr. rum.
 
-Kriterierne for boliger står i vejledningen til § 386: højst 100 timer om året over 27 °C
-og højst 25 timer over 28 °C. Timerne tælles på den operative temperatur fra en
-timesimulering af et helt år (8760 eller 8784 værdier pr. rum).
+Kilde: § 386 og Bygningsreglementets vejledning om termisk indeklima (læst 2026-10-02).
+
+- Boliger: højst 100 timer pr. år af brugstiden over 27 °C og 25 timer over 28 °C. Det
+  forudsætter, at der kan luftes ud ved at åbne vinduer.
+- Andre bygninger: bygherren fastlægger grænserne; for kontorlignende brug opfylder
+  100 timer over 26 °C og 25 timer over 27 °C normalt bestemmelsen.
+- Temperaturen er den operative temperatur, og beregningen laves for de kritiske rum
+  med vejrdata DRY 2013 for kalenderåret 2010 (§ 386, stk. 2).
+
+Timerne tælles fra en timesimulering af et helt år (8760 eller 8784 værdier pr. rum).
 
 Modulet er ren Python 3 uden afhængigheder, så det kan testes uden Rhino og bruges
 fra en Grasshopper-komponent i Rhino 8.
@@ -12,6 +19,10 @@ from dataclasses import dataclass, field
 
 # (grænse i °C, tilladte timer pr. år)
 KRITERIER_BOLIG = ((27.0, 100), (28.0, 25))
+KRITERIER_KONTOR = ((26.0, 100), (27.0, 25))   # vejledende; bygherren fastlægger
+
+VEJRDATA = "DRY 2013 for kalenderåret 2010"
+FORUDSAETNING_BOLIG = "Grænserne for boliger forudsætter, at der kan luftes ud ved at åbne vinduer."
 
 TIMER_PR_AAR = (8760, 8784)
 
@@ -85,6 +96,7 @@ def som_data(resultater):
     """Resultaterne som almindelige dicts, klar til JSON og notatet."""
     return {
         "kriterier": [[g, t] for g, t in resultater[0].tilladt.items()] if resultater else [],
+        "vejrdata": VEJRDATA,
         "rum": [
             {
                 "navn": r.navn,

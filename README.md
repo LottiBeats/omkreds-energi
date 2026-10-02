@@ -7,7 +7,8 @@ så de kan testes uden Rhino.
 ```
 omkreds_energi/   beregninger (ren Python, ingen Rhino)
   overtemperatur.py   timer over 27/28 °C pr. rum, BR18 § 386
-  dagslys.py          andel af gulvet med 300 lux i halvdelen af dagslystimerne, § 379
+  dagslys.py          300 lux-metoden, § 379 (boligen som helhed, dagslystimer, net-tjek)
+  glasareal.py        10 pct.-reglen med alle korrektionsfaktorer fra TBST's vejledning
 grasshopper/      tynde Script-komponenter til Rhino 8, der kalder omkreds_energi
 tests/            pytest
 projekter/        én mappe pr. sag – ligger ikke i git (kun projekter/eksempel/)
@@ -25,10 +26,21 @@ pip install pytest
 python -m pytest
 ```
 
+## Kilder
+
+Reglerne er tjekket mod bygningsreglementet.dk den 2. oktober 2026 og står i toppen af
+hvert modul:
+
+- § 386 og vejledningen om termisk indeklima (overtemperatur)
+- § 379 og vejledningen om lys og udsyn, afsnit 1.2 (dagslys, 300 lux)
+- TBST: Vejledning om korrektioner til 10 pct.-reglen for dagslys, januar 2019
+
+Tjek igen, når der kommer en ny version af BR18.
+
 ## Plan
 
 1. Overtemperatur (§ 386) ✔
-2. Dagslys (§ 379): andel af gulvet med 300 lux i halvdelen af dagslystimerne ✔
+2. Dagslys (§ 379): 300 lux-metoden og 10 pct.-reglen ✔
 3. Notatgenerator (PDF) i omkreds-stil
 4. Varmetabsramme og dimensionerende varmetab (DS 418)
 5. Energiramme
