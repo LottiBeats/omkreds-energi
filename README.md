@@ -7,6 +7,7 @@ så de kan testes uden Rhino.
 ```
 omkreds_energi/   beregninger (ren Python, ingen Rhino)
   overtemperatur.py   timer over 27/28 °C pr. rum, BR18 § 386
+  dagslys.py          andel af gulvet med 300 lux i halvdelen af dagslystimerne, § 379
 grasshopper/      tynde Script-komponenter til Rhino 8, der kalder omkreds_energi
 tests/            pytest
 projekter/        én mappe pr. sag – ligger ikke i git (kun projekter/eksempel/)
@@ -27,7 +28,7 @@ python -m pytest
 ## Plan
 
 1. Overtemperatur (§ 386) ✔
-2. Dagslys (§ 379): andel af gulvet med 300 lux i halvdelen af dagslystimerne
+2. Dagslys (§ 379): andel af gulvet med 300 lux i halvdelen af dagslystimerne ✔
 3. Notatgenerator (PDF) i omkreds-stil
 4. Varmetabsramme og dimensionerende varmetab (DS 418)
 5. Energiramme
