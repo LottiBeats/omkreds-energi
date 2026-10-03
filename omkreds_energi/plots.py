@@ -199,3 +199,43 @@ def dagslyskort(masker, da, rum_omrids=(), titel="Dagslys: andel af dagslystimer
         cb.set_label(f"% af dagslystimerne med mindst 300 lux · krav: {_tal(krav_tid)} % af tiden på halvdelen af gulvet",
                      fontsize=7.5)
         return fig
+
+
+# --- Komfort -------------------------------------------------------------------------
+
+KOMFORT_KATEGORIER = {
+    -2: ("For tørt", "#C9D3D8"),
+    -1: ("For koldt", "#7F9CAB"),
+    0: ("Behageligt", "#ECECE8"),
+    1: ("For varmt", ACCENT),
+    2: ("For fugtigt", "#8E2A14"),
+}
+
+
+def komfortkort(vaerdier, navn, fra_kl=0, til_kl=24, kategorier=None):
+    """Time for time over året, hvorfor rummet er ubehageligt (Ladybugs 'Discomfort Reason' eller
+    'Condition'). `vaerdier` er 8760 heltal, fx -2..2. Timer uden for fra_kl–til_kl vises ikke."""
+    kat = kategorier or KOMFORT_KATEGORIER
+    koder = sorted(kat)
+    dage = len(vaerdier) // 24
+    timer = list(range(fra_kl, til_kl))
+    grid = [[koder.index(int(round(vaerdier[d * 24 + h]))) if int(round(vaerdier[d * 24 + h])) in koder else 0
+             for d in range(dage)] for h in timer]
+    with plt.rc_context(STIL):
+        fig, ax = plt.subplots(figsize=(BREDDE, 6.2 * CM))
+        cmap = ListedColormap([kat[k][1] for k in koder])
+        ax.imshow(grid, aspect="auto", cmap=cmap, vmin=-0.5, vmax=len(koder) - 0.5, origin="lower",
+                  extent=(0, dage, fra_kl, til_kl), interpolation="nearest")
+        ax.set_xticks([m + 15 for m in MAANED_START], MAANEDER)
+        ax.tick_params(axis="x", length=0)
+        ax.set_yticks([t for t in (0, 6, 12, 18, 24) if fra_kl <= t <= til_kl])
+        ax.set_ylabel("kl.")
+        for s in ax.spines.values():
+            s.set_visible(False)
+        brugt = [k for k in koder if any(int(round(v)) == k for v in vaerdier)]
+        tael = {k: sum(1 for d in range(dage) for h in timer if int(round(vaerdier[d * 24 + h])) == k) for k in brugt}
+        handles = [plt.Rectangle((0, 0), 1, 1, color=kat[k][1]) for k in brugt]
+        ax.legend(handles, [f"{kat[k][0]} ({_tal(tael[k])} h)" for k in brugt], loc="upper center",
+                  bbox_to_anchor=(0.5, -0.12), ncol=len(brugt), fontsize=7.5, handlelength=1, columnspacing=1.4)
+        ax.set_title(f"{navn}: komfort time for time, kl. {fra_kl}–{til_kl}")
+        return fig

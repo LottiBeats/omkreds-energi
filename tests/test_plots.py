@@ -24,3 +24,29 @@ def test_dagslyskort_og_cli(tmp_path, monkeypatch, capsys):
     tegn.main()
     assert (tmp_path / "figurer" / "dagslys_kort.png").stat().st_size > 5000
     assert "dagslys_kort.png" in capsys.readouterr().out
+
+
+def test_komfortkort(tmp_path):
+    from omkreds_energi import plots
+    v = [1 if 4000 < t < 5000 and 12 <= t % 24 <= 17 else (-1 if t < 800 else 0) for t in range(8760)]
+    sti = tmp_path / "komfort.png"
+    plots.gem(plots.komfortkort(v, "Stue", 8, 22), str(sti))
+    assert sti.stat().st_size > 5000
+
+
+def test_tegninger_paa_proevemodel(tmp_path):
+    import importlib.util
+    import subprocess
+    import sys
+    if importlib.util.find_spec("honeybee") is None:
+        import pytest
+        pytest.skip("honeybee-core er ikke installeret")
+    subprocess.run([sys.executable, "eksempler/proevemodel.py", str(tmp_path)], check=True)
+    from omkreds_energi import tegninger, plots
+    m = tegninger.indlaes(str(tmp_path / "model.hbjson"))
+    assert {tegninger.rumnavn(r) for r in m.rooms} == {"Stue og køkken", "Bad", "Værelse"}
+    assert tegninger.find_rum(m, "RESIDENCE_2").display_name == "Bad"
+    for navn, fig in [("a", tegninger.aksonometri(m)), ("p", tegninger.plan(m, {"Residence_1": 31}, graense=25)),
+                      ("s", tegninger.solbane(55.68, 12.57))]:
+        plots.gem(fig, str(tmp_path / f"{navn}.png"))
+        assert (tmp_path / f"{navn}.png").stat().st_size > 5000

@@ -9,11 +9,12 @@ omkreds_energi/   beregninger (ren Python, ingen Rhino)
   overtemperatur.py   timer over 27/28 °C pr. rum, BR18 § 386
   dagslys.py          300 lux-metoden, § 379 (boligen som helhed, dagslystimer, net-tjek)
   glasareal.py        10 pct.-reglen med alle korrektionsfaktorer fra TBST's vejledning
-  plots.py            figurer til notatet: søjler, varighedskurver, temperaturtapet, dagslyskort
+  plots.py            figurer til notatet: søjler, varighedskurver, temperaturtapet, dagslyskort, komfortkort
+  tegninger.py        aksonometri, plan og solbane ud fra Honeybee-modellen (HBJSON)
   tegn.py             tegner figurerne fra komponenternes JSON: python -m omkreds_energi.tegn <mappe>
 grasshopper/      tynde Script-komponenter til Rhino 8, der kalder omkreds_energi
 tests/            pytest
-eksempler/        plots_eksempel.py tegner alle figurer med opdigtede data
+eksempler/        plots_eksempel.py og proevemodel.py: figurer og en prøvemodel med opdigtede data
 projekter/        én mappe pr. sag – ligger ikke i git (kun projekter/eksempel/)
 ```
 
@@ -25,7 +26,7 @@ inputs og outputs øverst. Giv `_repo` stien til denne mappe.
 ## Test
 
 ```bash
-pip install pytest matplotlib
+pip install pytest matplotlib honeybee-core ladybug-core
 python -m pytest
 ```
 
