@@ -98,16 +98,26 @@ def overtemperatur_soejler(data):
 
 def varighedskurve(rum, graenser=(27, 28), titel="Operativ temperatur, sorteret – varmeste timer"):
     """Varighedskurver: årets timer sorteret efter temperatur, de 400 varmeste vist.
-    `rum` er {navn: [8760 temperaturer]}. Rum der overskrider 100 h over 27 °C får accentfarven."""
+    `rum` er {navn: [8760 temperaturer]}. Rum der overskrider en af grænserne (100 h over 27 °C
+    eller 25 h over 28 °C) får accentfarven."""
     with plt.rc_context(STIL):
         fig, ax = plt.subplots(figsize=(BREDDE, 7 * CM))
         vis = 400
+        etiketter = []
         for navn, t in rum.items():
             s = sorted(t, reverse=True)[:vis]
-            daarlig = sum(1 for v in t if v > graenser[0]) > 100
+            daarlig = any(sum(1 for v in t if v > g) > h for g, h in zip(graenser, (100, 25)))
             ax.plot(range(1, vis + 1), s, color=ACCENT if daarlig else GRAA, lw=1.6 if daarlig else 1.0,
                     zorder=3 if daarlig else 2)
-            ax.text(vis + 6, s[-1], navn, va="center", fontsize=7.5, color=ACCENT if daarlig else SORT)
+            etiketter.append([s[-1], navn, ACCENT if daarlig else SORT])
+        # navnene ved kurvernes ende må ikke ligge oven i hinanden
+        lo, hi = ax.get_ylim()
+        afstand = (hi - lo) * 0.06
+        etiketter.sort()
+        for i in range(1, len(etiketter)):
+            etiketter[i][0] = max(etiketter[i][0], etiketter[i - 1][0] + afstand)
+        for y, navn, farve in etiketter:
+            ax.text(vis + 6, y, navn, va="center", fontsize=7.5, color=farve)
         for g, h in zip(graenser, (100, 25)):
             ax.axhline(g, color=SORT, lw=0.6, ls=(0, (3, 2)))
             ax.axvline(h, color=LYSGRAA, lw=0.8, zorder=1)
