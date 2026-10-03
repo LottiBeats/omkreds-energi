@@ -9,14 +9,19 @@ Rhino 8 Script-komponent, Python 3. Indsæt filen og lav:
            _navne_  (List Access)  rumnavne (valgfri)
            _bolig_  (bool)         True: boligen som helhed, net i 0,50 m (standard)
                                    False: arbejdsrum, hvert rum for sig, net i 0,85 m
-  outputs  tabel, ok, data
+           _omrids_ (List Access)  rummenes gulvkonturer som kurver – tegnes på dagslyskortet (valgfri)
+           _mappe_  (str)          sagens resultatmappe (valgfri)
+           _tegn_   (bool)         True: gem dagslys.json og tegn kortet i <mappe>/figurer
+  outputs  tabel, ok, data, figurer
 
 Beregningsnettet: 0,50 m over gulv i boliger (0,85 m i arbejdsrum), 0,5 m randzone
 fra væggene, lige store masker med længste side højst 1,0 m.
 
-Selve beregningen ligger i omkreds_energi/dagslys.py.
+Selve beregningen ligger i omkreds_energi/dagslys.py. Kortet kræver _mesh_ og matplotlib.
 """
+# r: matplotlib
 import json
+import os
 import sys
 
 if _repo and _repo not in sys.path:
@@ -50,14 +55,33 @@ def _masker(mesh):
     return ud
 
 
+def _polygoner(mesh):
+    """Maskerne som 2D-polygoner (x, y) til dagslyskortet."""
+    v = mesh.Vertices
+    ud = []
+    for i in range(mesh.Faces.Count):
+        f = mesh.Faces[i]
+        idx = [f.A, f.B, f.C, f.D] if f.IsQuad else [f.A, f.B, f.C]
+        ud.append([(round(v[j].X, 3), round(v[j].Y, 3)) for j in idx])
+    return ud
+
+
+def _omrids(kurve):
+    ok_, pl = kurve.TryGetPolyline()
+    if not ok_:
+        pl = kurve.ToPolyline(0.01, 0.1, 0.05, 1.0).ToPolyline()
+    return [(round(p.X, 3), round(p.Y, 3)) for p in pl][:-1]
+
+
 bolig = True if _bolig_ is None else bool(_bolig_)
-rum, arealer, net = {}, {}, []
+rum, arealer, net, polygoner = {}, {}, [], []
 for i, gren in enumerate(_da.Branches if _da else []):
     navn = str(_navne_[i]) if _navne_ and i < len(_navne_) else "Rum %d" % (i + 1)
     rum[navn] = [float(v) for v in gren]
     if _mesh_ and i < len(_mesh_) and _mesh_[i] is not None:
         masker = _masker(_mesh_[i])
         arealer[navn] = [m[0] for m in masker]
+        polygoner += _polygoner(_mesh_[i])
         net += ["%s: %s" % (navn, a) for a in dl.tjek_net([m[1] for m in masker])]
 
 if rum:
@@ -70,5 +94,21 @@ if rum:
         tabel += "\n! uden _mesh_ tælles alle punkter lige – kun rigtigt ved lige store masker"
     ok = data_dict["ok"]
     data = json.dumps(data_dict, ensure_ascii=False)
+    figurer = None
+    if _tegn_ and _mappe_:
+        alle_da = [d for n in rum for d in rum[n]]
+        if len(polygoner) != len(alle_da):
+            tabel += "\n! dagslyskortet kræver _mesh_ for alle rum"
+        else:
+            from omkreds_energi import plots, tegn
+            importlib.reload(plots)
+            importlib.reload(tegn)
+            plotdata = {"masker": polygoner, "da": alle_da,
+                        "omrids": [_omrids(k) for k in (_omrids_ or [])],
+                        "andel": data_dict.get("samlet_andel")}
+            os.makedirs(_mappe_, exist_ok=True)
+            with open(os.path.join(_mappe_, "dagslys.json"), "w", encoding="utf-8") as f:
+                json.dump(plotdata, f)
+            figurer = tegn.tegn_dagslys(plotdata, os.path.join(_mappe_, "figurer"))
 else:
-    tabel, ok, data = "Ingen DA-værdier på _da.", None, None
+    tabel, ok, data, figurer = "Ingen DA-værdier på _da.", None, None, None

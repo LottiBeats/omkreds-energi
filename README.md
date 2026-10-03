@@ -9,8 +9,11 @@ omkreds_energi/   beregninger (ren Python, ingen Rhino)
   overtemperatur.py   timer over 27/28 °C pr. rum, BR18 § 386
   dagslys.py          300 lux-metoden, § 379 (boligen som helhed, dagslystimer, net-tjek)
   glasareal.py        10 pct.-reglen med alle korrektionsfaktorer fra TBST's vejledning
+  plots.py            figurer til notatet: søjler, varighedskurver, temperaturtapet, dagslyskort
+  tegn.py             tegner figurerne fra komponenternes JSON: python -m omkreds_energi.tegn <mappe>
 grasshopper/      tynde Script-komponenter til Rhino 8, der kalder omkreds_energi
 tests/            pytest
+eksempler/        plots_eksempel.py tegner alle figurer med opdigtede data
 projekter/        én mappe pr. sag – ligger ikke i git (kun projekter/eksempel/)
 ```
 
@@ -22,7 +25,7 @@ inputs og outputs øverst. Giv `_repo` stien til denne mappe.
 ## Test
 
 ```bash
-pip install pytest
+pip install pytest matplotlib
 python -m pytest
 ```
 
@@ -41,9 +44,10 @@ Tjek igen, når der kommer en ny version af BR18.
 
 1. Overtemperatur (§ 386) ✔
 2. Dagslys (§ 379): 300 lux-metoden og 10 pct.-reglen ✔
-3. Notatgenerator (PDF) i omkreds-stil
-4. Varmetabsramme og dimensionerende varmetab (DS 418)
-5. Energiramme
+3. Figurer til notatet ✔
+4. Notatgenerator (PDF)
+5. Varmetabsramme og dimensionerende varmetab (DS 418)
+6. Energiramme
 
 ## Forbehold
 
